@@ -590,7 +590,7 @@
 </template>
 
 <script lang="ts" setup>
-import { adminApi } from '@/api/adminApi';
+import { getProductsAction } from '@/modules/products/actions/getProductsAction';
 
-adminApi;
+getProductsAction();
 </script>
