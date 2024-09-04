@@ -591,6 +591,13 @@
 
 <script lang="ts" setup>
 import { getProductsAction } from '@/modules/products/actions/getProductsAction';
+import { useQuery } from '@tanstack/vue-query';
 
-getProductsAction();
+//UseQuery.
+const { data: products } = useQuery({
+  //Guarda en el caché la consulta con el parámetro consultado, en este caso {page: 1}
+  queryKey: ['products', { page: 1 }],
+  //Llamar a nuestra funcion que tiene como parámetros el límite de productos y la página actual.
+  queryFn: () => getProductsAction(),
+});
 </script>
