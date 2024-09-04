@@ -4,7 +4,7 @@
   <!-- Header Navbar -->
   <NavBar></NavBar>
 
-  <!-- Product List -->
+  <!-- Todas las Pages de productos -->
   <router-view></router-view>
 
   <!-- Footer -->

@@ -588,3 +588,9 @@
     </div>
   </section>
 </template>
+
+<script lang="ts" setup>
+import { adminApi } from '@/api/adminApi';
+
+adminApi;
+</script>
