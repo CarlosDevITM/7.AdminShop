@@ -1,6 +1,6 @@
 import type { IUser } from '@/modules/auth/interfaces/IUserAuth';
 
-export interface IAllProducts {
+export interface AllProductsI {
   id: string;
   title: string;
   price: number;
