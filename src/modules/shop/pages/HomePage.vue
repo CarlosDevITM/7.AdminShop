@@ -96,18 +96,38 @@
 
   <!--Shop articles -->
   <ProductList v-else :products="products"></ProductList>
+
+  <!--Pagination-->
+  <ButtonPagination
+    :has-more-data="!!products && products.length < 10"
+    :is-first-page="actualPage === 1"
+    :actual-page="actualPage"
+  ></ButtonPagination>
 </template>
 
 <script lang="ts" setup>
 import { getProductsAction } from '@/modules/products/actions/getProductsAction';
 import { useQuery } from '@tanstack/vue-query';
 import ProductList from '@/modules/products/components/ProductList.vue';
+import ButtonPagination from '@/modules/common/components/ButtonPagination.vue';
+import { useRoute } from 'vue-router';
+import { ref, watch } from 'vue';
+
+//Control optional URL PAGES
+const route = useRoute();
+const actualPage = ref(Number(route.query.page || 1));
 
 //UseQuery.
 const { data: products } = useQuery({
-  //Guarda en el caché la consulta con el parámetro consultado, en este caso {page: 1}
-  queryKey: ['products', { page: 1 }],
+  //Guarda en el caché la consulta con el parámetro consultado, en este caso {page: actual-page}
+  queryKey: ['products', { page: actualPage }],
   //Llamar a nuestra funcion que tiene como parámetros el límite de productos y la página actual.
-  queryFn: () => getProductsAction(),
+  queryFn: () => getProductsAction(actualPage.value),
 });
+watch(
+  () => route.query.page,
+  (newPage) => {
+    actualPage.value = Number(newPage || 1);
+  },
+);
 </script>
