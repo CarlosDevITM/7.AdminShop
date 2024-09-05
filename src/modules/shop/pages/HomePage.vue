@@ -107,15 +107,18 @@
 
 <script lang="ts" setup>
 import { getProductsAction } from '@/modules/products/actions/getProductsAction';
-import { useQuery } from '@tanstack/vue-query';
+import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import ProductList from '@/modules/products/components/ProductList.vue';
 import ButtonPagination from '@/modules/common/components/ButtonPagination.vue';
 import { useRoute } from 'vue-router';
-import { ref, watch } from 'vue';
+import { ref, watch, watchEffect } from 'vue';
 
 //Control optional URL PAGES
 const route = useRoute();
 const actualPage = ref(Number(route.query.page || 1));
+
+//Query client to preload a page.
+const queryClient = useQueryClient();
 
 //UseQuery.
 const { data: products } = useQuery({
@@ -128,6 +131,16 @@ watch(
   () => route.query.page,
   (newPage) => {
     actualPage.value = Number(newPage || 1);
+    //Scroll up
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   },
 );
+
+//WatchEffect funciona con variables reactivas
+watchEffect(() => {
+  queryClient.prefetchQuery({
+    queryKey: ['products', { page: actualPage.value + 1 }],
+    queryFn: () => getProductsAction(actualPage.value + 1),
+  });
+});
 </script>
