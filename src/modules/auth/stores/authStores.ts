@@ -15,19 +15,21 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const loginResponse = await loginAction(email, password);
 
-      if (!loginResponse.ok) return false;
+      if (!loginResponse.ok) {
+        logOut();
+        return false;
+      }
 
       user.value = loginResponse.user;
       token.value = loginResponse.token;
       authStatus.value = AuthStatusE.Authenticaded;
       return true;
     } catch (error) {
-      return logOut(error);
+      return logOut();
     }
   };
 
-  const logOut = (error: unknown) => {
-    console.error(error);
+  const logOut = () => {
     authStatus.value = AuthStatusE.Unauthenticated;
     user.value = undefined;
     token.value = '';

@@ -1,15 +1,17 @@
 <template>
   <h1 class="text-2xl font-semibold mb-4">Login</h1>
-  <form action="#" method="POST">
+  <!--enviar formulario sin recargar-->
+  <form @submit.prevent="onLogin">
     <!-- Username Input -->
     <div class="mb-4">
-      <label for="username" class="block text-gray-600">Username</label>
+      <label for="email" class="block text-gray-600">Email</label>
       <input
         type="text"
-        id="username"
-        name="username"
+        id="email"
+        name="email"
         class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500"
         autocomplete="off"
+        v-model="loginForm.email"
       />
     </div>
     <!-- Password Input -->
@@ -21,11 +23,18 @@
         name="password"
         class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500"
         autocomplete="off"
+        v-model="loginForm.password"
       />
     </div>
     <!-- Remember Me Checkbox -->
     <div class="mb-4 flex items-center">
-      <input type="checkbox" id="remember" name="remember" class="text-blue-500" />
+      <input
+        type="checkbox"
+        id="remember"
+        name="remember"
+        class="text-blue-500"
+        v-model="loginForm.rememberMe"
+      />
       <label for="remember" class="text-gray-600 ml-2">Remember Me</label>
     </div>
     <!-- Forgot Password Link -->
@@ -34,8 +43,7 @@
     </div>
     <!-- Login Button -->
     <button
-      @click="onLogin"
-      type="button"
+      type="submit"
       class="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full"
     >
       Login
@@ -48,18 +56,20 @@
 </template>
 
 <script lang="ts" setup>
+import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '../stores/authStores';
 
 const router = useRouter();
-
-const onLogin = () => {
-  localStorage.setItem('userId', 'ABC-123');
-
-  const lastPath = localStorage.getItem('lastPath') ?? '/';
-
-  // router.replace({
-  //   // name: 'home',
-  // });
-  router.replace(lastPath);
+const authStore = useAuthStore();
+//Reactive: uso para objetos reactivos.
+const loginForm = reactive({
+  email: '',
+  password: '',
+  rememberMe: false,
+});
+const onLogin = async () => {
+  const status = await authStore.onLogin(loginForm.email, loginForm.password);
+  console.log({ status });
 };
 </script>
