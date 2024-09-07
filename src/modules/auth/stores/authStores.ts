@@ -2,14 +2,16 @@ import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { AuthStatusE, type IUser } from '../interfaces';
 import { loginAction } from '../actions';
+import { useLocalStorage } from '@vueuse/core';
+import { registerAction } from '../actions/registerAction';
 
 export const useAuthStore = defineStore('auth', () => {
   //3 possible status cases: Authenticaded, Unauthenticated, Cheking
   const authStatus = ref(AuthStatusE.Checking);
   //User que puede ser de tipo IUser o undefined.
   const user = ref<IUser | undefined>();
-
-  const token = ref<string>('');
+  //VueUSE/CORE Added to save into local storage
+  const token = ref(useLocalStorage('token', ''));
 
   const onLogin = async (email: string, password: string) => {
     try {
@@ -36,6 +38,23 @@ export const useAuthStore = defineStore('auth', () => {
     return false;
   };
 
+  //Register User.
+  const onRegister = async (fullName: string, email: string, password: string) => {
+    try {
+      const registerResponse = await registerAction(fullName, email, password);
+
+      if (!registerResponse.ok) {
+        logOut();
+        return false;
+      }
+      user.value = registerResponse.user;
+      token.value = registerResponse.token;
+      authStatus.value = AuthStatusE.Authenticaded;
+      return { ok: true, message: '' };
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return {
     //Constants
     user,
@@ -50,5 +69,6 @@ export const useAuthStore = defineStore('auth', () => {
 
     //Functions
     onLogin,
+    onRegister,
   };
 });
