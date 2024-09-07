@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { AuthStatusE, type IUser } from '../interfaces';
-import { loginAction } from '../actions';
+import { checkAuthUserAction, loginAction } from '../actions';
 import { useLocalStorage } from '@vueuse/core';
 import { registerAction } from '../actions/registerAction';
 
@@ -50,9 +50,31 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = registerResponse.user;
       token.value = registerResponse.token;
       authStatus.value = AuthStatusE.Authenticaded;
-      return { ok: true, message: '' };
+      return { ok: true, token: token.value };
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  //Check Authenticated User Token
+  const checkAuthUserStatus = async (): Promise<boolean> => {
+    try {
+      //Lamando a la action que llama a la BD.
+      const statusResponse = await checkAuthUserAction();
+      //Si el OK devuelve false o no existe el token
+      if (!statusResponse.ok) {
+        logOut();
+        return false;
+      }
+
+      //Si existe el token.
+      authStatus.value = AuthStatusE.Authenticaded;
+      user.value = statusResponse.user;
+      token.value = statusResponse.token;
+      return true;
+    } catch (error) {
+      logOut();
+      return false;
     }
   };
   return {
@@ -70,5 +92,6 @@ export const useAuthStore = defineStore('auth', () => {
     //Functions
     onLogin,
     onRegister,
+    checkAuthUserStatus,
   };
 });
