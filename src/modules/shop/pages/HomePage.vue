@@ -110,12 +110,10 @@ import { getProductsAction } from '@/modules/products/actions/getProductsAction'
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import ProductList from '@/modules/products/components/ProductList.vue';
 import ButtonPagination from '@/modules/common/components/ButtonPagination.vue';
-import { useRoute } from 'vue-router';
-import { ref, watch, watchEffect } from 'vue';
+import { watchEffect } from 'vue';
+import { usePagination } from '@/modules/common/composables/usePagination';
 
-//Control optional URL PAGES
-const route = useRoute();
-const actualPage = ref(Number(route.query.page || 1));
+const { actualPage } = usePagination();
 
 //Query client to preload a page.
 const queryClient = useQueryClient();
@@ -127,14 +125,6 @@ const { data: products } = useQuery({
   //Llamar a nuestra funcion que tiene como parámetros el límite de productos y la página actual.
   queryFn: () => getProductsAction(actualPage.value),
 });
-watch(
-  () => route.query.page,
-  (newPage) => {
-    actualPage.value = Number(newPage || 1);
-    //Scroll up
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  },
-);
 
 //WatchEffect funciona con variables reactivas
 watchEffect(() => {
