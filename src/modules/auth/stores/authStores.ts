@@ -32,6 +32,7 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   const logOut = () => {
+    localStorage.removeItem('token');
     authStatus.value = AuthStatusE.Unauthenticated;
     user.value = undefined;
     token.value = '';
@@ -77,6 +78,9 @@ export const useAuthStore = defineStore('auth', () => {
       return false;
     }
   };
+
+  //Saber si el usuario es admin o un usuario general.
+
   return {
     //Constants
     user,
@@ -88,10 +92,13 @@ export const useAuthStore = defineStore('auth', () => {
     isUnauthenticaded: computed(() => authStatus.value === AuthStatusE.Unauthenticated),
 
     username: computed(() => user.value?.fullName),
+    //Saber si es admin
+    isAdmin: computed(() => user.value?.roles.includes('admin') ?? false),
 
     //Functions
     onLogin,
     onRegister,
     checkAuthUserStatus,
+    logOut,
   };
 });

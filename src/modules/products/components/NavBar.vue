@@ -20,23 +20,46 @@
         <span class="self-center whitespace-nowrap text-xl font-semibold">Termcode</span>
       </a>
       <div class="mt-2 sm:mt-0 sm:flex md:order-2">
-        <!-- Login Button -->
-        <RouterLink
-          :to="{ name: 'login' }"
-          type="button"
-          class="rounde mr-3 hidden border border-blue-700 py-1.5 px-6 text-center text-sm font-medium text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 md:inline-block rounded-lg"
-        >
-          Login
-        </RouterLink>
+        <!--Buttons if user is Authenticaded-->
+        <template v-if="authStore.isAuthenticaded">
+          <!-- Login Button -->
+          <RouterLink
+            v-if="authStore.isAdmin"
+            :to="'/admin'"
+            type="button"
+            class="mr-3 hidden border border-blue-700 py-1.5 px-6 text-center text-sm font-medium text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 md:inline-block rounded-lg"
+          >
+            Admin
+          </RouterLink>
+          <!-- Register Button -->
+          <button
+            @click="authStore.logOut()"
+            type="button"
+            class="mr-3 hidden bg-blue-700 py-1.5 px-6 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 md:mr-0 md:inline-block rounded-lg"
+          >
+            Logout
+          </button>
+        </template>
 
-        <RouterLink
-          :to="{ name: 'register' }"
-          type="button"
-          class="rounde mr-3 hidden bg-blue-700 py-1.5 px-6 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 md:mr-0 md:inline-block rounded-lg"
-        >
-          Register
-        </RouterLink>
-        <!-- Register Button -->
+        <!--Buttons if user isn´t authenticaded-->
+        <template v-if="!authStore.isAuthenticaded">
+          <RouterLink
+            :to="{ name: 'login' }"
+            type="button"
+            class="mr-3 hidden border border-blue-700 py-1.5 px-6 text-center text-sm font-medium text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 md:inline-block rounded-lg"
+          >
+            Login
+          </RouterLink>
+          <!-- Register Button -->
+          <RouterLink
+            :to="{ name: 'register' }"
+            type="button"
+            class="mr-3 hidden bg-blue-700 py-1.5 px-6 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 md:mr-0 md:inline-block rounded-lg"
+          >
+            Register
+          </RouterLink>
+        </template>
+
         <button
           data-collapse-toggle="navbar-sticky"
           type="button"
@@ -101,3 +124,9 @@
     </div>
   </nav>
 </template>
+
+<script lang="ts" setup>
+import { useAuthStore } from '@/modules/auth/stores/authStores';
+
+const authStore = useAuthStore();
+</script>

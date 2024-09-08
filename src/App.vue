@@ -1,5 +1,6 @@
 <template>
-  <router-view></router-view>
+  <LoadingEffect v-if="authStore.isChecking"></LoadingEffect>
+  <router-view v-else></router-view>
   <vue-query-devtools></vue-query-devtools>
 </template>
 
@@ -8,6 +9,7 @@ import { VueQueryDevtools } from '@tanstack/vue-query-devtools';
 import { useAuthStore } from './modules/auth/stores/authStores';
 import { useRoute, useRouter } from 'vue-router';
 import { AuthStatusE } from './modules/auth/interfaces';
+import LoadingEffect from './modules/common/components/LoadingEffect.vue';
 //Store de pinia
 const authStore = useAuthStore();
 
