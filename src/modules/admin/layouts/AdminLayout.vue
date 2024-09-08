@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import DashboardPage from '../pages/DashboardPage.vue';
-</script>
-
 <template>
   <!-- component -->
   <div class="flex w-screen h-screen text-gray-700">
@@ -119,7 +115,7 @@ import DashboardPage from '../pages/DashboardPage.vue';
         </svg>
       </a>
       <a
-        class="flex items-center justify-center flex-shrink-0 w-10 h-10 mt-4 mt-auto rounded hover:bg-gray-300"
+        class="flex items-center justify-center flex-shrink-0 w-10 h-10 mt-auto rounded hover:bg-gray-300"
         href="#"
       >
         <svg
@@ -264,8 +260,8 @@ import DashboardPage from '../pages/DashboardPage.vue';
         </button>
       </div>
       <div class="flex-grow p-6 overflow-auto bg-gray-200">
-        <!--DashBoard-->
-        <DashboardPage></DashboardPage>
+        <!--Mountable components to body-->
+        <router-view></router-view>
       </div>
     </div>
     <!-- Component End  -->

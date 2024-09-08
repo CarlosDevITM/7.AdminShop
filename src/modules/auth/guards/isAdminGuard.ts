@@ -10,7 +10,6 @@ const isAdminGuard = async (
   //Estado de authentication del usuario
 
   authStore.isAdmin ? next() : next({ name: 'home' });
-  console.log(authStore.isAdmin);
 };
 
 export default isAdminGuard;
