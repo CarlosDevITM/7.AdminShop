@@ -9,7 +9,7 @@
       <!-- Primera parte del formulario -->
       <div class="mb-4">
         <label for="title" class="form-label">Título</label>
-        <input type="text" id="title" class="form-control" />
+        <input v-model="title" v-bind="titleAttrs" type="text" id="title" class="form-control" />
       </div>
 
       <div class="mb-4">
@@ -39,9 +39,14 @@
 
       <div class="mb-4">
         <label for="sizes" class="form-label">Tallas</label>
-        <button type="button" class="bg-blue-100 p-2 rounded w-14 mr-2">XS</button>
-        <button type="button" class="bg-blue-500 text-white p-2 rounded w-14 mr-2">S</button>
-        <button type="button" class="bg-blue-500 text-white p-2 rounded w-14 mr-2">M</button>
+        <button
+          v-for="size in allSizes"
+          :key="size"
+          type="button"
+          class="bg-gray-300 text-white p-2 rounded w-14 mr-2"
+        >
+          {{ size }}
+        </button>
       </div>
     </div>
 
@@ -86,6 +91,16 @@
       </div>
     </div>
   </form>
+  <!---VueFORM-->
+  <div class="grid grid-cols-2">
+    <div class="bg-blue-400">
+      {{ values }}
+    </div>
+
+    <div class="bg-red-400">
+      {{ errors }}
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -97,3 +112,5 @@
   @apply shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none;
 }
 </style>
+
+<script src="./productPage.ts" lang="ts"></script>
