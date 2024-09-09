@@ -66,7 +66,7 @@
               'p-2 rounded w-14 mr-2 flex-1',
               {
                 'bg-blue-500 text-white': hasSize(size),
-                'bg-blue-100': !hasSize(size),
+                'bg-gray-300 text-white': !hasSize(size),
               },
             ]"
           >
@@ -107,7 +107,8 @@
       <div class="my-4 text-right">
         <button
           type="submit"
-          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          class="disabled:bg-gray-300 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          :disabled="isPending"
         >
           Guardar
         </button>

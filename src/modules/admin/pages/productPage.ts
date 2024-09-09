@@ -1,12 +1,14 @@
 import { defineComponent, watch, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
-import { useQuery } from '@tanstack/vue-query';
-import { useFieldArray, useForm } from 'vee-validate';
+import { useMutation, useQuery } from '@tanstack/vue-query';
+import { useFieldArray, useForm, type GenericObject } from 'vee-validate';
 import * as yup from 'yup';
 
 import { getProductByIdAction } from '@/modules/admin/actions/getProductByIdAction';
+import { createUpdateProductAction } from '@/modules/admin/actions/createOrUpdateProductsAction';
 import CustomInput from '@/modules/common/components/CustomImput.vue';
 import CustomTextArea from '@/modules/common/components/CustomTextArea.vue';
+import { useToast } from 'vue-toastification';
 
 const validationSchema = yup.object({
   title: yup.string().required('Este campo es super importante').min(3, 'Mínimo de 3 letras!!!'),
@@ -17,18 +19,11 @@ const validationSchema = yup.object({
   gender: yup.string().required().oneOf(['men', 'women', 'kid']),
 });
 
-// const validationSchema = {
-//   ...
-//   ..
-//   ..
-//   ...
-// }
-
 export default defineComponent({
-  components: {
-    CustomInput,
-    CustomTextArea,
-  },
+  // components: {
+  //   CustomInput,
+  //   CustomTextArea,
+  // },
   props: {
     productId: {
       type: String,
@@ -36,6 +31,7 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const toast = useToast();
     const router = useRouter();
 
     const {
@@ -46,6 +42,23 @@ export default defineComponent({
       queryKey: ['product', props.productId],
       queryFn: () => getProductByIdAction(props.productId),
       retry: false,
+    });
+
+    //USEMUTATION DE TANSTACKQUERY PARA ACTUALIZAR Y GESTIONAR LOS POSIBLES ESTADOS DE LA ACTUALIZACION
+
+    //useMutation a comparación de useQuery, no ejecuta o monta al instante, solo es un esqueleto de reglas que va a tener nuestra acción.
+    const {
+      //Ejecuta la mutación
+      mutate,
+      //Muestra si la mutación está en proceso
+      isPending,
+      //Muestra si la mutación esta completada
+      isSuccess: isUpdatedProduct,
+      //Uso de la data.
+      data: updateProduct,
+    } = useMutation({
+      //Referencia de función que hará la mutación, de aquí viene la DATA.
+      mutationFn: createUpdateProductAction,
     });
 
     const { values, defineField, errors, handleSubmit, resetForm, meta } = useForm({
@@ -60,24 +73,32 @@ export default defineComponent({
     const [stock, stockAttrs] = defineField('stock');
     const [gender, genderAttrs] = defineField('gender');
 
-    const { fields: sizes, remove: removeSize, push: pushSize } = useFieldArray<string>('sizes');
     const { fields: images } = useFieldArray<string>('images');
 
-    const onSubmit = handleSubmit((value) => {
-      console.log({ value });
+    const { fields: sizes, remove: removeSize, push: pushSize } = useFieldArray<string>('sizes');
+
+    //Cuando el formulario es posteado.
+    const onSubmit = handleSubmit(async (values) => {
+      //Update the values
+      mutate(values);
     });
 
     const toggleSize = (size: string) => {
+      //Creamos un nuevo array de sizes
       const currentSizes = sizes.value.map((s) => s.value);
+      //Constante para saber si la talla ya existe en el array.
       const hasSize = currentSizes.includes(size);
 
+      //Si es así eliminala
       if (hasSize) {
         removeSize(currentSizes.indexOf(size));
+        //Si no insertala al array.
       } else {
         pushSize(size);
       }
     };
 
+    //Observar si el usuario coloca id falsos o rutas que no existen en esta página, si coloca eso y no está cargando la página, llevará al usuario a otra página.
     watchEffect(() => {
       if (isError.value && !isLoading.value) {
         router.replace('/admin/products');
@@ -85,6 +106,7 @@ export default defineComponent({
       }
     });
 
+    //Revisar si hay información de la db y si la hay que la cargue.
     watch(
       product,
       () => {
@@ -99,6 +121,20 @@ export default defineComponent({
         immediate: true,
       },
     );
+
+    watch(isUpdatedProduct, (value) => {
+      //Si el valor que regresa el isUpdated es falso, no hagas nada.
+      if (!value) return;
+
+      //Si no, manda un mensaje
+      toast.success('El producto ha sido actualizado correctamente');
+
+      // TODO: Redirección cuando se crea
+
+      resetForm({
+        values: updateProduct.value,
+      });
+    });
 
     return {
       // Properties
@@ -119,6 +155,8 @@ export default defineComponent({
       gender,
       genderAttrs,
 
+      isPending,
+
       sizes,
       images,
 
@@ -136,131 +174,3 @@ export default defineComponent({
     };
   },
 });
-
-// import { useQuery } from '@tanstack/vue-query';
-// import { defineComponent, watch, watchEffect } from 'vue';
-// import { getProductByIdAction } from '../actions';
-// import { useFieldArray, useForm } from 'vee-validate';
-// import router from '@/router';
-// import * as yup from 'yup';
-// import CustomImput from '@/modules/common/components/CustomImput.vue';
-// import CustomTextArea from '@/modules/common/components/CustomTextArea.vue';
-
-// //YUP Validators
-// const validationSchema = yup.object({
-//   title: yup.string().required().min(3),
-//   slug: yup.string().required(),
-//   description: yup.string().required(),
-//   price: yup.number().required(),
-//   stock: yup.number().required().min(1),
-//   gender: yup.string().required().oneOf(['man', 'woman', 'kid']),
-// });
-
-// //Images
-// const { fields: images } = useFieldArray<string>('images');
-
-// export default defineComponent({
-//   components: {
-//     CustomImput,
-//     CustomTextArea,
-//   },
-//   props: {
-//     productId: {
-//       type: String,
-//       required: true,
-//     },
-//   },
-
-//   setup(props) {
-//     console.log(props);
-//     const {
-//       data: product,
-//       isError,
-//       isLoading,
-//     } = useQuery({
-//       queryKey: ['productId', props.productId],
-//       queryFn: () => getProductByIdAction(props.productId),
-//       retry: false,
-//     });
-
-//     //UseForm
-//     const { values, defineField, errors, handleSubmit, resetForm } = useForm({
-//       validationSchema,
-//     });
-
-//     const onSubmit = handleSubmit((value) => {});
-
-//     //INPUTS
-//     const [title, titleAttrs] = defineField('title');
-//     const [slug, slugAttrs] = defineField('slug');
-//     const [description, descriptionAttrs] = defineField('description');
-//     const [price, priceAttrs] = defineField('price');
-//     const [stock, stockAttrs] = defineField('stock');
-//     const [gender, genderAttrs] = defineField('gender');
-
-//     //Buttons sizes
-//     const { fields: sizes, remove: removeSize, push: pushSize } = useFieldArray<string>('sizes');
-
-//     //Sizes buttons
-//     const toggleSize = (size: string) => {
-//       const currentSizes = sizes.value.map((size) => size.value);
-//       const hasSize = currentSizes.includes(size);
-
-//       if (hasSize) {
-//         removeSize(currentSizes.indexOf(size));
-//       } else {
-//         pushSize(size);
-//       }
-//     };
-//     //Watch if user is inserting false urls
-//     watchEffect(() => {
-//       //Si hay un error y la página no está cargando.
-//       if (isError.value && !isLoading.value) {
-//         //Llevalo a la pantalla de inicio admin
-//         router.replace('/admin/products');
-//       }
-//     });
-
-//     //Observar si hay productos en el formulario
-//     watch(
-//       product,
-//       () => {
-//         if (!product) return;
-
-//         resetForm({
-//           values: product.value,
-//         });
-//       },
-//       {
-//         //
-//         deep: true,
-//         immediate: true,
-//       },
-//     );
-//     return {
-//       //Properties
-//       values,
-//       errors,
-//       //Form
-//       title,
-//       titleAttrs,
-//       slug,
-//       slugAttrs,
-//       description,
-//       descriptionAttrs,
-//       price,
-//       priceAttrs,
-//       stock,
-//       stockAttrs,
-//       gender,
-//       genderAttrs,
-//       images,
-//       //Computed
-//       allSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-
-//       //Functions
-//       onSubmit,
-//       toggleSize,
-//     };
-//   },
-// });
