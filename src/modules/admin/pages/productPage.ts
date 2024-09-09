@@ -1,54 +1,58 @@
+import { defineComponent, watch, watchEffect } from 'vue';
+import { useRouter } from 'vue-router';
 import { useQuery } from '@tanstack/vue-query';
-import { defineComponent, watchEffect } from 'vue';
-import { getProductByIdAction } from '../actions';
-import { useForm } from 'vee-validate';
-import router from '@/router';
+import { useFieldArray, useForm } from 'vee-validate';
 import * as yup from 'yup';
-import CustomImput from '@/modules/common/components/CustomImput.vue';
+
+import { getProductByIdAction } from '@/modules/admin/actions/getProductByIdAction';
+import CustomInput from '@/modules/common/components/CustomImput.vue';
 import CustomTextArea from '@/modules/common/components/CustomTextArea.vue';
 
-//YUP Validators
 const validationSchema = yup.object({
-  title: yup.string().required().min(3),
+  title: yup.string().required('Este campo es super importante').min(3, 'Mínimo de 3 letras!!!'),
   slug: yup.string().required(),
   description: yup.string().required(),
   price: yup.number().required(),
   stock: yup.number().required().min(1),
-  gender: yup.string().required().oneOf(['male', 'female', 'kid']),
+  gender: yup.string().required().oneOf(['men', 'women', 'kid']),
 });
 
+// const validationSchema = {
+//   ...
+//   ..
+//   ..
+//   ...
+// }
+
 export default defineComponent({
-  // components: {
-  //   CustomImput,
-  //   CustomTextArea,
-  // },
+  components: {
+    CustomInput,
+    CustomTextArea,
+  },
   props: {
     productId: {
       type: String,
       required: true,
     },
   },
-
   setup(props) {
-    console.log(props);
+    const router = useRouter();
+
     const {
       data: product,
       isError,
       isLoading,
     } = useQuery({
-      queryKey: ['productId', props.productId],
+      queryKey: ['product', props.productId],
       queryFn: () => getProductByIdAction(props.productId),
       retry: false,
     });
 
-    //UseForm
-    const { values, defineField, errors, handleSubmit } = useForm({
+    const { values, defineField, errors, handleSubmit, resetForm, meta } = useForm({
       validationSchema,
+      // initialValues: product.value,
     });
 
-    const onSubmit = handleSubmit((value) => {});
-
-    //INPUTS
     const [title, titleAttrs] = defineField('title');
     const [slug, slugAttrs] = defineField('slug');
     const [description, descriptionAttrs] = defineField('description');
@@ -56,19 +60,52 @@ export default defineComponent({
     const [stock, stockAttrs] = defineField('stock');
     const [gender, genderAttrs] = defineField('gender');
 
-    //Watch if user is inserting false urls
+    const { fields: sizes, remove: removeSize, push: pushSize } = useFieldArray<string>('sizes');
+    const { fields: images } = useFieldArray<string>('images');
+
+    const onSubmit = handleSubmit((value) => {
+      console.log({ value });
+    });
+
+    const toggleSize = (size: string) => {
+      const currentSizes = sizes.value.map((s) => s.value);
+      const hasSize = currentSizes.includes(size);
+
+      if (hasSize) {
+        removeSize(currentSizes.indexOf(size));
+      } else {
+        pushSize(size);
+      }
+    };
+
     watchEffect(() => {
-      //Si hay un error y la página no está cargando.
       if (isError.value && !isLoading.value) {
-        //Llevalo a la pantalla de inicio admin
         router.replace('/admin/products');
+        return;
       }
     });
+
+    watch(
+      product,
+      () => {
+        if (!product) return;
+
+        resetForm({
+          values: product.value,
+        });
+      },
+      {
+        deep: true,
+        immediate: true,
+      },
+    );
+
     return {
-      //Properties
+      // Properties
       values,
       errors,
-      //Form
+      meta,
+
       title,
       titleAttrs,
       slug,
@@ -81,11 +118,149 @@ export default defineComponent({
       stockAttrs,
       gender,
       genderAttrs,
-      //Computed
+
+      sizes,
+      images,
+
+      // Getters
       allSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
 
-      //Functions
+      // Actions
       onSubmit,
+      toggleSize,
+
+      hasSize: (size: string) => {
+        const currentSizes = sizes.value.map((s) => s.value);
+        return currentSizes.includes(size);
+      },
     };
   },
 });
+
+// import { useQuery } from '@tanstack/vue-query';
+// import { defineComponent, watch, watchEffect } from 'vue';
+// import { getProductByIdAction } from '../actions';
+// import { useFieldArray, useForm } from 'vee-validate';
+// import router from '@/router';
+// import * as yup from 'yup';
+// import CustomImput from '@/modules/common/components/CustomImput.vue';
+// import CustomTextArea from '@/modules/common/components/CustomTextArea.vue';
+
+// //YUP Validators
+// const validationSchema = yup.object({
+//   title: yup.string().required().min(3),
+//   slug: yup.string().required(),
+//   description: yup.string().required(),
+//   price: yup.number().required(),
+//   stock: yup.number().required().min(1),
+//   gender: yup.string().required().oneOf(['man', 'woman', 'kid']),
+// });
+
+// //Images
+// const { fields: images } = useFieldArray<string>('images');
+
+// export default defineComponent({
+//   components: {
+//     CustomImput,
+//     CustomTextArea,
+//   },
+//   props: {
+//     productId: {
+//       type: String,
+//       required: true,
+//     },
+//   },
+
+//   setup(props) {
+//     console.log(props);
+//     const {
+//       data: product,
+//       isError,
+//       isLoading,
+//     } = useQuery({
+//       queryKey: ['productId', props.productId],
+//       queryFn: () => getProductByIdAction(props.productId),
+//       retry: false,
+//     });
+
+//     //UseForm
+//     const { values, defineField, errors, handleSubmit, resetForm } = useForm({
+//       validationSchema,
+//     });
+
+//     const onSubmit = handleSubmit((value) => {});
+
+//     //INPUTS
+//     const [title, titleAttrs] = defineField('title');
+//     const [slug, slugAttrs] = defineField('slug');
+//     const [description, descriptionAttrs] = defineField('description');
+//     const [price, priceAttrs] = defineField('price');
+//     const [stock, stockAttrs] = defineField('stock');
+//     const [gender, genderAttrs] = defineField('gender');
+
+//     //Buttons sizes
+//     const { fields: sizes, remove: removeSize, push: pushSize } = useFieldArray<string>('sizes');
+
+//     //Sizes buttons
+//     const toggleSize = (size: string) => {
+//       const currentSizes = sizes.value.map((size) => size.value);
+//       const hasSize = currentSizes.includes(size);
+
+//       if (hasSize) {
+//         removeSize(currentSizes.indexOf(size));
+//       } else {
+//         pushSize(size);
+//       }
+//     };
+//     //Watch if user is inserting false urls
+//     watchEffect(() => {
+//       //Si hay un error y la página no está cargando.
+//       if (isError.value && !isLoading.value) {
+//         //Llevalo a la pantalla de inicio admin
+//         router.replace('/admin/products');
+//       }
+//     });
+
+//     //Observar si hay productos en el formulario
+//     watch(
+//       product,
+//       () => {
+//         if (!product) return;
+
+//         resetForm({
+//           values: product.value,
+//         });
+//       },
+//       {
+//         //
+//         deep: true,
+//         immediate: true,
+//       },
+//     );
+//     return {
+//       //Properties
+//       values,
+//       errors,
+//       //Form
+//       title,
+//       titleAttrs,
+//       slug,
+//       slugAttrs,
+//       description,
+//       descriptionAttrs,
+//       price,
+//       priceAttrs,
+//       stock,
+//       stockAttrs,
+//       gender,
+//       genderAttrs,
+//       images,
+//       //Computed
+//       allSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+
+//       //Functions
+//       onSubmit,
+//       toggleSize,
+//     };
+//   },
+// });
