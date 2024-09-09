@@ -4,36 +4,45 @@
     <hr class="my-4" />
   </div>
 
-  <form class="grid grid-cols-1 sm:grid-cols-2 bg-white px-5 gap-5">
+  <form @submit="onSubmit" class="grid grid-cols-1 sm:grid-cols-2 bg-white px-5 gap-5">
     <div class="first-col">
       <!-- Primera parte del formulario -->
       <div class="mb-4">
         <label for="title" class="form-label">Título</label>
-        <input v-model="title" v-bind="titleAttrs" type="text" id="title" class="form-control" />
+        <CustomImput v-model="title" v-bind="titleAttrs" :error="errors.title"></CustomImput>
       </div>
 
       <div class="mb-4">
         <label for="slug" class="form-label">Slug</label>
-        <input type="text" id="slug" class="form-control" />
+        <CustomImput v-model="slug" v-bind="slugAttrs" :error="errors.slug"></CustomImput>
       </div>
 
       <div class="mb-4">
         <label for="description" class="form-label">Descripción</label>
-        <textarea
+        <!-- <textarea
           id="description"
           class="shadow h-32 appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-        ></textarea>
+        ></textarea> -->
+        <CustomTextArea
+          v-model="description"
+          v-bind="descriptionAttrs"
+          :error="errors.description"
+        ></CustomTextArea>
       </div>
 
       <div class="flex flex-row gap-3">
         <div class="mb-4">
           <label for="price" class="form-label">Precio</label>
-          <input type="number" id="price" class="form-control" />
+          <CustomImput
+            v-model.number="price"
+            v-bind="priceAttrs"
+            :error="errors.price"
+          ></CustomImput>
         </div>
 
         <div class="mb-4">
           <label for="stock" class="form-label">Inventario</label>
-          <input type="number" id="stock" class="form-control" />
+          <CustomImput v-model="stock" v-bind="stockAttrs" :error="errors.stock"></CustomImput>
         </div>
       </div>
 

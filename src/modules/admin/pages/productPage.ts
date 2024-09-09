@@ -4,18 +4,24 @@ import { getProductByIdAction } from '../actions';
 import { useForm } from 'vee-validate';
 import router from '@/router';
 import * as yup from 'yup';
+import CustomImput from '@/modules/common/components/CustomImput.vue';
+import CustomTextArea from '@/modules/common/components/CustomTextArea.vue';
 
 //YUP Validators
 const validationSchema = yup.object({
-  title: yup.string().required(),
+  title: yup.string().required().min(3),
   slug: yup.string().required(),
   description: yup.string().required(),
   price: yup.number().required(),
-  stack: yup.number().required().min(1),
+  stock: yup.number().required().min(1),
   gender: yup.string().required().oneOf(['male', 'female', 'kid']),
 });
 
 export default defineComponent({
+  // components: {
+  //   CustomImput,
+  //   CustomTextArea,
+  // },
   props: {
     productId: {
       type: String,
@@ -36,16 +42,18 @@ export default defineComponent({
     });
 
     //UseForm
-    const { values, defineField, errors } = useForm({
+    const { values, defineField, errors, handleSubmit } = useForm({
       validationSchema,
     });
+
+    const onSubmit = handleSubmit((value) => {});
 
     //INPUTS
     const [title, titleAttrs] = defineField('title');
     const [slug, slugAttrs] = defineField('slug');
     const [description, descriptionAttrs] = defineField('description');
     const [price, priceAttrs] = defineField('price');
-    const [stack, stackAttrs] = defineField('stack');
+    const [stock, stockAttrs] = defineField('stock');
     const [gender, genderAttrs] = defineField('gender');
 
     //Watch if user is inserting false urls
@@ -69,14 +77,15 @@ export default defineComponent({
       descriptionAttrs,
       price,
       priceAttrs,
-      stack,
-      stackAttrs,
+      stock,
+      stockAttrs,
       gender,
       genderAttrs,
       //Computed
       allSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
 
       //Functions
+      onSubmit,
     };
   },
 });
