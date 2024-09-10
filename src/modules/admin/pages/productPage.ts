@@ -1,7 +1,7 @@
-import { defineComponent, watch, watchEffect } from 'vue';
+import { defineComponent, ref, watch, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMutation, useQuery } from '@tanstack/vue-query';
-import { useFieldArray, useForm, type GenericObject } from 'vee-validate';
+import { useFieldArray, useForm } from 'vee-validate';
 import * as yup from 'yup';
 
 import { getProductByIdAction } from '@/modules/admin/actions/getProductByIdAction';
@@ -78,10 +78,25 @@ export default defineComponent({
 
     const { fields: sizes, remove: removeSize, push: pushSize } = useFieldArray<string>('sizes');
 
+    //GET AND SHOW IMAGES TO FORM
+    const imageFiles = ref<File[]>([]);
+
+    const fileInputRef = ref();
+
     //Cuando el formulario es posteado.
     const onSubmit = handleSubmit(async (values) => {
+      const formValues = {
+        //Input values
+        ...values,
+        //Images type
+        //localhost:3000/moimom         Image.jpg
+        images: [...values.images, ...imageFiles.value],
+      };
+
       //Update the values
-      mutate(values);
+
+      mutate(formValues);
+      imageFiles.value = [];
     });
 
     const toggleSize = (size: string) => {
@@ -146,6 +161,34 @@ export default defineComponent({
         refetch();
       },
     );
+    const removeImage = (name: string) => {
+      imageFiles.value = imageFiles.value.filter((image) => name !== image.name);
+      fileInputRef.value.value = '';
+    };
+
+    watch(
+      () => imageFiles.value,
+      () => {
+        onFileChange;
+      },
+    );
+
+    //Mostrar imagenes en el form.
+    const onFileChange = (event: Event) => {
+      const fileInput = event.target as HTMLInputElement;
+      //Lista de imagenes
+      const fileList = fileInput.files;
+      console.log(fileList?.length);
+      //Si no hay lista de imagenes, no hagas nada.
+      if (!fileList) return;
+      if (fileList.length === 0) return;
+
+      //Si las hay, recorre esa lista y por cada imagen, guardala en nuestra propiedad reactiva imageFiles que es otro array.
+      for (const imageFile of fileList) {
+        imageFiles.value.push(imageFile);
+      }
+      console.log({ imagesFromOnFileChange: imageFiles.value });
+    };
 
     return {
       // Properties
@@ -170,6 +213,9 @@ export default defineComponent({
 
       sizes,
       images,
+      imageFiles,
+      onFileChange,
+      fileInputRef,
 
       // Getters
       allSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
@@ -182,6 +228,14 @@ export default defineComponent({
         const currentSizes = sizes.value.map((s) => s.value);
         return currentSizes.includes(size);
       },
+
+      //CREATE URL TO SRC PATH OF MY IMAGES
+      temporalImagePath: (imageFile: File) => {
+        return URL.createObjectURL(imageFile);
+      },
+
+      //Eliminar una imagen al subirla
+      removeImage,
     };
   },
 });

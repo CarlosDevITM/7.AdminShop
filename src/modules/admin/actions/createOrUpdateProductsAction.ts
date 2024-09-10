@@ -1,32 +1,31 @@
 import { adminApi } from '@/api/adminApi';
 import type { AllProductsI } from '@/modules/products/interfaces/IAllProducts';
 
-//Partial: That configures all values in products as an optional value
 export const createUpdateProductAction = async (product: Partial<AllProductsI>) => {
-  const productID = product.id;
+  const productId = product.id;
 
-  product = clearProductForUpdateCreate(product);
-  if (product.id && product.id !== '') {
-    //Update Product
-    return await updateProduct(productID!, product);
+  const newImages = await uploadImages(product.images ?? []);
+  product.images = newImages;
+
+  product = cleanProductForCreateUpdate(product);
+
+  if (productId && productId !== '') {
+    // Actualizar producto
+    return await updateProduct(productId, product);
   }
 
-  //Create Product
+  // Crear producto
   return await createProduct(product);
 };
 
-const clearProductForUpdateCreate = (product: Partial<AllProductsI>) => {
-  //CONVERTIR EL URL DE LA IMAGEN AL NOMBRE DE LA IMAGEN TIPO Algo.jpg
+const cleanProductForCreateUpdate = (product: Partial<AllProductsI>) => {
   const images: string[] =
-    //Copia del array del producto
     product.images?.map((image) => {
-      //Si la imagen inicia con http
       if (image.startsWith('http')) {
-        //Dividir y retornar la última parte del url de la imagen con el .pop()
         const imageName = image.split('/').pop();
-        //Retornar el imageNAme si tenemos un valor
         return imageName ? image : '';
       }
+
       return image;
     }) ?? [];
 
@@ -37,24 +36,45 @@ const clearProductForUpdateCreate = (product: Partial<AllProductsI>) => {
   return product;
 };
 
-const updateProduct = async (productID: string, product: Partial<AllProductsI>) => {
+const updateProduct = async (productId: string, product: Partial<AllProductsI>) => {
   try {
-    //Tomar la data de la ruta de actualización
-    const { data } = await adminApi.patch<AllProductsI>(`products/${productID}`, product);
+    const { data } = await adminApi.patch<AllProductsI>(`/products/${productId}`, product);
     return data;
   } catch (error) {
-    console.error(error);
+    console.log(error);
     throw new Error('Error updating product');
   }
 };
 
 const createProduct = async (product: Partial<AllProductsI>) => {
   try {
-    //Tomar la data de la ruta de actualización
-    const { data } = await adminApi.post<AllProductsI>(`products/`, product);
+    const { data } = await adminApi.post<AllProductsI>(`/products`, product);
     return data;
   } catch (error) {
-    console.error(error);
-    throw new Error('Error updating product');
+    console.log(error);
+    throw new Error('Error creating product');
   }
+};
+
+const uploadImages = async (images: (string | File)[]) => {
+  const filesToUpload = images.filter((image) => image instanceof File) as File[];
+  const currentImages = images.filter((image) => typeof image === 'string') as string[];
+
+  const uploadPromises = filesToUpload.map(async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const { data } = await adminApi.post<{ secureUrl: string }>('/files/product', formData);
+
+      return data.secureUrl;
+    } catch (error) {
+      console.log(error);
+      throw new Error('Error uploading image');
+    }
+  });
+
+  const uploadedImages = await Promise.all(uploadPromises);
+
+  return [...currentImages, ...uploadedImages];
 };
