@@ -3,17 +3,19 @@ import type { AllProductsI } from '@/modules/products/interfaces/IAllProducts';
 
 //Partial: That configures all values in products as an optional value
 export const createUpdateProductAction = async (product: Partial<AllProductsI>) => {
+  const productID = product.id;
+
+  product = clearProductForUpdateCreate(product);
   if (product.id && product.id !== '') {
     //Update Product
-    return await UpdateProduct(product);
+    return await updateProduct(productID!, product);
   }
 
-  throw new Error('Producto no actualizado');
-
   //Create Product
+  return await createProduct(product);
 };
 
-const UpdateProduct = async (product: Partial<AllProductsI>) => {
+const clearProductForUpdateCreate = (product: Partial<AllProductsI>) => {
   //CONVERTIR EL URL DE LA IMAGEN AL NOMBRE DE LA IMAGEN TIPO Algo.jpg
   const images: string[] =
     //Copia del array del producto
@@ -28,15 +30,28 @@ const UpdateProduct = async (product: Partial<AllProductsI>) => {
       return image;
     }) ?? [];
 
-  const productID = product.id;
-
   delete product.id;
   delete product.user;
   product.images = images;
 
+  return product;
+};
+
+const updateProduct = async (productID: string, product: Partial<AllProductsI>) => {
   try {
     //Tomar la data de la ruta de actualización
     const { data } = await adminApi.patch<AllProductsI>(`products/${productID}`, product);
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error updating product');
+  }
+};
+
+const createProduct = async (product: Partial<AllProductsI>) => {
+  try {
+    //Tomar la data de la ruta de actualización
+    const { data } = await adminApi.post<AllProductsI>(`products/`, product);
     return data;
   } catch (error) {
     console.error(error);

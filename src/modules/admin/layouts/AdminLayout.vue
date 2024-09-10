@@ -200,7 +200,7 @@
         </a>
         <RouterLink
           class="flex items-center flex-shrink-0 h-10 px-3 mt-auto text-sm font-medium bg-blue-500 text-white hover:bg-blue-700 rounded-md"
-          to="/admin/products/product"
+          to="/admin/products/create"
         >
           <svg
             class="w-5 h-5"

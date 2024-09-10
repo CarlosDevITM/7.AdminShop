@@ -20,10 +20,10 @@ const validationSchema = yup.object({
 });
 
 export default defineComponent({
-  // components: {
-  //   CustomInput,
-  //   CustomTextArea,
-  // },
+  components: {
+    CustomInput,
+    CustomTextArea,
+  },
   props: {
     productId: {
       type: String,
@@ -38,6 +38,7 @@ export default defineComponent({
       data: product,
       isError,
       isLoading,
+      refetch,
     } = useQuery({
       queryKey: ['product', props.productId],
       queryFn: () => getProductByIdAction(props.productId),
@@ -127,14 +128,24 @@ export default defineComponent({
       if (!value) return;
 
       //Si no, manda un mensaje
+
       toast.success('El producto ha sido actualizado correctamente');
 
-      // TODO: Redirección cuando se crea
+      //Si al crear un producto todo está correcto
+      router.replace(`/admin/products/${updateProduct.value!.id}`);
 
       resetForm({
         values: updateProduct.value,
       });
     });
+
+    watch(
+      () => props.productId,
+      () => {
+        //Desppues de que el id cambie, vuelve a ejecutar el tanstack query para actualizar la data y reflejarla en pantalla.
+        refetch();
+      },
+    );
 
     return {
       // Properties

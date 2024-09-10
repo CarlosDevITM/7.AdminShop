@@ -3,7 +3,23 @@ import { getProductImageAction } from '@/modules/products/actions';
 import type { AllProductsI } from '@/modules/products/interfaces/IAllProducts';
 
 export const getProductByIdAction = async (productId: string) => {
-  //TODO: Pensar la creación de un nuevo producto.
+  //Para cargar la pantalla de inserción de un archivo sin un id
+  if (productId === 'create') {
+    //Producto vacio para simular un id de un producto
+    return {
+      id: '',
+      title: '',
+      slug: '',
+      description: '',
+      price: '',
+      stock: 0,
+      images: [],
+      tags: [],
+      sizes: [],
+      gender: '' as any,
+      user: {} as any,
+    };
+  }
 
   try {
     //Desestructuramos la data de la llamada de la API hacia products/:productID
